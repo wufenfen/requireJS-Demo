@@ -1,0 +1,16 @@
+<!-- This demo is copied from http://www.cnblogs.com/yexiaochai/p/3961291.html
+ --><html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title></title>
+</head>
+<body>
+</body>
+<script src="require.js" type="text/javascript"></script>
+<script type="text/javascript">
+  require(['util', 'math', 'num'], function (util, math, num) {
+
+    num = util.formatNum(math.getRadom()) + '_' + num; 
+    console.log(num);
+  });
+</script>
+</html>

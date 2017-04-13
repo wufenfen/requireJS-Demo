@@ -1,0 +1,99 @@
+<!--index.html-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title> simple requireJS Demo  </title>
+</head>
+<body>
+	<div> This is a simple version, without considering scripts in different files. In other words, all the scripts are written in one file. </div>
+
+	<div> Please open the console platform to see how the test demo works. </div>
+	<div id="content">
+		
+	</div>
+<script>
+	/***************** 简易实现 *****************/
+	// 此版本define需要严格按照顺序
+	// 
+	var modules = {};
+
+	// 定义: 简单假设三个参数都存在
+	function define(id, deps, factory){
+		var arg = []; 
+		if( modules[id] ){
+			return modules[id];
+		}
+		else {
+			deps && deps.forEach(function(dep, index){
+				if( modules[dep] ){
+					arg[index] = modules[dep];
+				}
+				else {
+					// 怎么办
+				} 
+			})
+
+			modules[id] = factory && factory.apply(null, arg);
+			return modules[id];
+		}
+	}
+
+	// 引入
+	function require(deps, factory){
+		if( arguments.length == 1){
+			return modules[deps];
+		}
+		else{ 
+			define('', deps, factory);
+		}
+	}
+
+/****************** 测试代码 ********************/
+	//mod1.js
+	define('mod1', [], function() {
+	    console.log('require module: mod1');
+
+	    return {
+	        hello: function() {
+	            console.log("hello mod1");
+	        }
+	    };
+	});
+
+	//mod2.js
+	define('mod2', [], function() {
+	    console.log('require module: mod2');
+
+	    return {
+	        hello: function() {
+	            console.log("hello mod2");
+	        }
+	    };
+	});
+
+	//main.js
+	define('main', ['mod1', 'mod2'], function(mod1, mod2) {
+	    //运行至此，mod1.js 和 mod2.js 已经下载完成；
+	    //mod1、mod2 两个模块已经执行完，直接可用；
+	    console.log('require module: main');
+	    var mod2 = require('mod2');
+
+	    mod1.hello();
+	    mod2.hello();
+
+	    return {
+	        hello: function() {
+	            console.log('hello main');
+	        }
+	    };
+	});
+
+	require(['main'], function(main) {
+	    main.hello();
+	});
+
+</script>
+ 
+</body>
+</html>
