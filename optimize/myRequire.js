@@ -1,57 +1,95 @@
-var loadScript = function(path, callback){
+// 利用闭包创建局部作用域
+(function(){
+	// record all the loaded modules
+	var moduleMap = {};
 
-	if( path.indexOf('.js') < 0){
-		path += '.js';
+	function define(id, deps, factory){
+		var modName = document.currentScript;
+		var params = [];
+		if(typeof id == "object" ){
+			factory = deps;
+			deps = id;
+		}
+		else{
+			modName = id;
+		}
+
+		var depCount = deps && deps.length;
+		// no dependencies, exercute the factory immediately
+		if( !depCount ||  depCount == 0){
+			return saveModule(modName, null ,factory)
+		}
+		else{
+			deps.forEach(function(dep, i){
+				(function(i){
+					loadScript(dep, function(param){
+						depCount--;
+						params[i] = param;
+						if(depCount==0){
+							return saveModule(modName, params, factory);
+						}
+					})
+				}(i))
+			})
+		}
 	}
-	var script = document.createElement("script");
-	script.src = path;
-	(document.getElementsByTagName('head')[0] || document.body).appendChild(script);
 
-	script.onload = callback.call(null, script); 
-}
+	function getURL(name){
+		if( name.indexOf('.js') < 0){
+			return name + '.js';
+		}
 
-var modules = {};
-
-// 定义: 简单假设三个参数都存在
-function define(id, deps, factory){
-	var arg = []; 
-	if( modules[id] ){
-		return modules[id];
+		return name;
 	}
-	else {
-		Array.isArray(deps)? '':deps = [deps];
-		var depsCount = deps.length;
-		var loadedCount = 0;
 
-		deps && deps.forEach(function(dep, index){
-			if( modules[dep] ){
-				arg[index] = modules[dep];
-				loadedCount ++; 
-				if(loadedCount == depsCount){ 
-					modules[id] = factory && factory.apply(null, arg);
-					return modules[id];
-			 	}
+	function loadScript(name, callback){
+		var mod = moduleMap[name];
+
+		if( mod ){
+			if( mod.status == 'loaded' ){
+				callback & callback(mod.export);
 			}
-			else {
-				 loadScript(dep, function(content){
-				 	loadedCount ++; 
-				 	if(loadedCount == depsCount){ 
-						modules[id] = factory && factory.apply(null, arg);
-						return modules[id];
-				 	}
-				 })
-			} 
-		})
+			else{ // loading
+				mod.onload.push(callback);
+			}
+		}
+		else{
+
+			moduleMap[name] = {
+				status: 'loading',
+				export: null,
+				onload: [callback]
+			}
+
+			var url = getURL(name);
+
+			var el = document.createElement('script');
+			el.src = url;
+			el.id = name;
+			document.body.appendChild(el);
+		}
 
 	}
-}
 
-// 引入
-function require(deps, factory){
-	if( arguments.length == 1){
-		define('', deps);
+	function saveModule(name, params, callback){
+		var mod = moduleMap[name];
+		if( mod ){
+			mod.status = 'loaded';  
+			if( mod.export ){
+				return mod.export;
+			}
+			mod.export = callback && callback.apply(this, params); 
+
+			while( fn = mod.onload.pop() ){
+				fn && fn(mod.export);
+			}
+		}
+		else{
+			callback.apply(this, params)
+		}
 	}
-	else{ 
-		define('', deps, factory);
-	}
-}
+
+	window.define = define;
+	window.require = define;
+
+})()

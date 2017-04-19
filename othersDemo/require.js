@@ -55,7 +55,7 @@
     if (moduleCache[modName]) {
       mod = moduleCache[modName];
       if (mod.status == 'loaded') {
-        setTimeout(callback(this.params), 0);
+        setTimeout(callback(mod.export), 0);
       } else {
         //如果未到加载状态直接往onLoad插入值，在依赖项加载好后会解除依赖
         mod.onload.push(callback);
@@ -100,7 +100,7 @@
       mod.export = callback ? callback(params) : null;
 
       //解除父类依赖，这里事实上使用事件监听较好
-      while (fn = mod.onload.shift()) {
+      while (fn = mod.onload.pop()) {
         fn(mod.export);
       }
     } else {
