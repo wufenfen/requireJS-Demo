@@ -1,9 +1,8 @@
 //main.js
-define('main', ['mod1', 'mod2'], function(mod1, mod2) {
+define('main', ['mod1','mod2'], function(mod1, mod2) {
     //运行至此，mod1.js 和 mod2.js 已经下载完成；
     //mod1、mod2 两个模块已经执行完，直接可用；
-    console.log('require module: main');
-    var mod2 = require('mod2');
+    console.log('require module: main'); 
 
     mod1.hello();
     mod2.hello();
@@ -14,3 +13,4 @@ define('main', ['mod1', 'mod2'], function(mod1, mod2) {
         }
     };
 }); 
+ 

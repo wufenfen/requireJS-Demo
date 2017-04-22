@@ -1,5 +1,5 @@
 //mod2.js
-define('mod2', [], function() {
+define('mod2', ['mod1'], function() {
     console.log('require module: mod2');
 
     return {
